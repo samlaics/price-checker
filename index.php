@@ -3,36 +3,62 @@
 <title>Price Watcher</title>
 </header>
 <body>
-<h1>Price Watcher</h1>
-
-<table>
-<tr><td><h3>Item Link</h3></td>
-	<td><h3>Current Price</h3></td>
-</tr>
 
 <?php
 // load credentials file, connect to db, and catch connection errors
 include("/var/www/lib/cred.php");
 $conn = mysqli_connect('localhost', $user, $password, 'pricewatch');
 if(! $conn ) {
-  die('Could not connect: ' . mysqli_connect_error());
+  die( 'Could not connect: ' . mysqli_connect_error() );
 }
 
-// load item links from table and scrape prices from these sites
-$sql = "SELECT link, expected_price FROM items";
-$result = mysqli_query($conn, $sql);
-while ( $row = mysqli_fetch_array($result, MYSQLI_ASSOC) ) {
-	$html = file_get_contents($row['link']); 
-	$regex = '/<span id="priceblock_ourprice" class="a-size-medium a-color-price">(.+?)<\/span>/';
- 	preg_match($regex,$html,$price);
-    echo "<tr><td><a href='".$row['link']."'>".$row['link']."</a></td>";
-    echo "<td>".$price[1]."</td></tr>";
+// if we are adding an entry, only show whether it was successful or not
+// and not the whole price table
+if( isset($_POST['add']) ) {
+	$item_link = $_POST['item_link'];
+	$sql = "INSERT INTO items (link) VALUES ('$item_link')";
+	$retval = mysqli_query($conn, $sql);
+	if(! $retval ) {
+  		die( 'Could not enter data: ' . mysqli_error($conn) );
+	}
+	echo "Entered data successfully <br />";
+	echo "<a href='index.php'>Back to Main Page</a>";
+
+} else {
+	?>
+	<form method="post" action="<?php $_PHP_SELF ?>">
+	<h1>Price Watcher</h1>
+	<table>
+	<tr>
+		<td><h3>Product</h3></td>
+		<td><h3>Current Price</h3></td>
+		<td><h3>Item Link</h3></td>
+	</tr>
+	<?php
+	// load item links from table and scrape prices from these sites
+	$sql = "SELECT link FROM items";
+	$result = mysqli_query($conn, $sql);
+	while ( $row = mysqli_fetch_array($result, MYSQLI_ASSOC) ) {
+		$html = file_get_contents($row['link']); 
+		$regex1 = '/<span id="priceblock_ourprice" class="a-size-medium a-color-price">(.+?)<\/span>/';
+	 	preg_match($regex1, $html, $price);
+	 	$regex2 = '/<span id="productTitle" class="a-size-large">[\n\s]*(.+?)[\n\s]*<\/span>/';
+	 	preg_match($regex2, $html, $product);
+	 	echo "<tr><td>".$product[1]."</td>";
+	 	echo "<td>".$price[1]."</td>";
+	    echo "<td><a href='".$row['link']."'>".$row['link']."</a></td></tr>";
+	}
+    mysqli_free_result($result);
+    ?>
+    </table>
+    <input name="item_link" type="text" id="item_link" size="200">
+    <input name="add" type="submit" id="add" value="Add Item">
+    </form>
+<?php
 }
 
-mysqli_free_result($result);
 mysqli_close($conn);
 ?>
 
-</table>
 </body>
 </html>
