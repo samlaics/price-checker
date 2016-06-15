@@ -12,8 +12,7 @@ if(! $conn ) {
   die( 'Could not connect: ' . mysqli_connect_error() );
 }
 
-// if we are adding an entry, only show whether it was successful or not
-// and not the whole price table
+// show whether adding an entry was successful or not
 if( isset($_POST['add']) ) {
 	$item_link = $_POST['item_link'];
 	$sql = "INSERT INTO items (link) VALUES ('$item_link')";
@@ -24,6 +23,18 @@ if( isset($_POST['add']) ) {
 	echo "Entered data successfully <br />";
 	echo "<a href='index.php'>Back to Main Page</a>";
 
+// show whether deleting an entry was successful or not
+} else if( isset($_POST['delete']) ) {
+	$id=$_POST['itemid'];
+	$sql = "DELETE FROM items WHERE link='$id'";
+	$retval = mysqli_query($conn, $sql);
+	if(! $retval ) {
+  		die( 'Could not delete data: ' . mysqli_error($conn) );
+	}
+	echo "Deleted data successfully <br />";
+	echo "<a href='index.php'>Back to Main Page</a>";
+
+// main page: load item links from table and scrape prices from these sites
 } else {
 	?>
 	<form method="post" action="<?php $_PHP_SELF ?>">
@@ -35,7 +46,6 @@ if( isset($_POST['add']) ) {
 		<td><h3>Item Link</h3></td>
 	</tr>
 	<?php
-	// load item links from table and scrape prices from these sites
 	$sql = "SELECT link FROM items";
 	$result = mysqli_query($conn, $sql);
 	while ( $row = mysqli_fetch_array($result, MYSQLI_ASSOC) ) {
@@ -46,7 +56,8 @@ if( isset($_POST['add']) ) {
 	 	preg_match($regex2, $html, $product);
 	 	echo "<tr><td>".$product[1]."</td>";
 	 	echo "<td>".$price[1]."</td>";
-	    echo "<td><a href='".$row['link']."'>".$row['link']."</a></td></tr>";
+	    echo "<td><a href='".$row['link']."'>".$row['link']."</a></td>";
+	    echo "<td><input type='hidden' name='itemid' value='".$row['link']."'><input type='submit' name='delete' value='Delete'></td></tr>";
 	}
     mysqli_free_result($result);
     ?>
