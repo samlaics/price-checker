@@ -30,11 +30,11 @@ if( isset($_POST['add']) ) {
 } else if( isset($_POST['delete']) ) {
 	$id = $_POST['itemid'];
 	$sql = "DELETE FROM items WHERE id='$id'";
-	$retval = mysqli_query($conn, $sql);
-	if(! $retval ) {
+	mysqli_query($conn, $sql);
+	if( mysqli_affected_rows($conn) != 1 ) {
   		die( 'Could not delete data: ' . mysqli_error($conn) );
 	}
-	echo "Deleted data successfully<br />";
+	echo "Deleted data successfully <br />";
 	echo "<a href='index.php'>Back to Main Page</a>";
 
 // main page: load item links from table and scrape prices from these sites
@@ -52,11 +52,27 @@ if( isset($_POST['add']) ) {
 	$result = mysqli_query($conn, $sql);
 	while ( $row = mysqli_fetch_array($result, MYSQLI_ASSOC) ) {
 		$displayurl = rawurldecode($row['link']);
-		$html = file_get_contents($displayurl); 
-		$regex1 = '/<span id="priceblock_ourprice" class="a-size-medium a-color-price">(.+?)<\/span>/';
-	 	preg_match($regex1, $html, $price);
-	 	$regex2 = '/<span id="productTitle" class="a-size-large">[\n\s]*(.+?)[\n\s]*<\/span>/';
-	 	preg_match($regex2, $html, $product);
+		$html = @file_get_contents($displayurl);
+		$regex_amz_price = '/<span id="priceblock_ourprice" class="a-size-medium a-color-price">(.+?)<\/span>/';
+		$regex_amz_name = '/<span id="productTitle" class="a-size-large">[\n\s]*(.+?)[\n\s]*<\/span>/';
+		$regex_ami_price = '/<li class="price_caption">Our Price<\/li>[\n\s]*<li class="price">(?:<span.*<\/span>)?(.+?)<\/li>/';	
+		$regex_ami_name = '/<title>[\n\s]*AmiAmi \[Character & Hobby Shop\] \|(.+?)<\/title/';
+		$regex_price = $regex_name = '';
+	 	if ( (strpos($displayurl, 'amazon.ca') !== false) || (strpos($displayurl, 'amazon.com') !== false) ) {
+    		$regex_price = $regex_amz_price;
+    		$regex_name = $regex_amz_name;
+		} else if (strpos($displayurl, 'amiami.com') !== false) {
+			$regex_price = $regex_ami_price;
+    		$regex_name = $regex_ami_name;
+    	} else {
+    		$regex_price = $regex_name = '/.^/';
+    	}
+	 	if (!preg_match($regex_price, $html, $price)) {
+	 		$price[1] = '(no data)';
+	 	}
+	 	if (!preg_match($regex_name, $html, $product)) {
+	 		$product[1] = '(no data)';
+	 	}
 	 	echo "<tr><td>".$product[1]."</td>";
 	 	echo "<td>".$price[1]."</td>";
 	    echo "<td><a href='".$displayurl."'>".$displayurl."</a></td>";
