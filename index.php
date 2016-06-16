@@ -29,7 +29,7 @@ if( isset($_POST['add']) ) {
 // show whether deleting an entry was successful or not
 } else if( isset($_POST['delete']) ) {
 	$id = $_POST['itemid'];
-	$sql = "DELETE FROM items WHERE link='$id'";
+	$sql = "DELETE FROM items WHERE id='$id'";
 	$retval = mysqli_query($conn, $sql);
 	if(! $retval ) {
   		die( 'Could not delete data: ' . mysqli_error($conn) );
@@ -39,8 +39,7 @@ if( isset($_POST['add']) ) {
 
 // main page: load item links from table and scrape prices from these sites
 } else {
-	?>
-	<form method="post" action="<?php $_PHP_SELF ?>">
+	?>	
 	<h1>Price Watcher</h1>
 	<table>
 	<tr>
@@ -49,7 +48,7 @@ if( isset($_POST['add']) ) {
 		<td><h3>Item Link</h3></td>
 	</tr>
 	<?php
-	$sql = "SELECT link FROM items";
+	$sql = "SELECT link, id FROM items";
 	$result = mysqli_query($conn, $sql);
 	while ( $row = mysqli_fetch_array($result, MYSQLI_ASSOC) ) {
 		$displayurl = rawurldecode($row['link']);
@@ -61,12 +60,16 @@ if( isset($_POST['add']) ) {
 	 	echo "<tr><td>".$product[1]."</td>";
 	 	echo "<td>".$price[1]."</td>";
 	    echo "<td><a href='".$displayurl."'>".$displayurl."</a></td>";
-	    echo "<td><input type='hidden' name='itemid' value='".$row['link']."'><input type='submit' name='delete' value='Delete'></td></tr>";
+	    echo "<form method='post' action='".$_SERVER["PHP_SELF"]."'>
+	    		<td><input type='hidden' name='itemid' value='".$row['id']."'>
+	    			<input type='submit' name='delete' value='Delete'>
+	    		</td></form></tr>";
 	}
     mysqli_free_result($result);
     ?>
     </table>
-    <input name="item_link" type="text" id="item_link" size="200">
+    <form method="post" action="<?php $_PHP_SELF ?>">
+    <input name="item_link" type="text" id="item_link" size="150">
     <input name="add" type="submit" id="add" value="Add Item">
     </form>
 <?php
