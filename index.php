@@ -53,7 +53,7 @@ if( isset($_POST['add']) ) {
   $sql = "SELECT link, id FROM items";
   $result = mysqli_query($conn, $sql);
   while ( $row = mysqli_fetch_array($result, MYSQLI_ASSOC) ) {
-    $displayurl = rawurldecode($row['link']);
+    $displayurl = htmlspecialchars( rawurldecode($row['link']) );
     $html = @file_get_contents($displayurl);
     $regex_amz_price = '/<span id="priceblock_ourprice" class="a-size-medium a-color-price">(.+?)<\/span>/';
     $regex_amz_name = '/<span id="productTitle" class="a-size-large">[\n\s]*(.+?)[\n\s]*<\/span>/';
