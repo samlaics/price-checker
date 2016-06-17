@@ -1,4 +1,5 @@
 <html>
+<link rel="stylesheet" type="text/css" href="pricewatch.css">
 <header>
 <title>Price Watcher</title>
 </header>
@@ -41,11 +42,12 @@ if( isset($_POST['add']) ) {
 } else {
   ?>  
   <h1>Price Watcher</h1>
+  <div style="overflow-x:auto;">
   <table>
   <tr>
-    <td><h3>Product</h3></td>
-    <td><h3>Current Price</h3></td>
-    <td><h3>Item Link</h3></td>
+    <th>Product</th>
+    <th>Current Price</th>
+    <th>Item Link</th>
   </tr>
   <?php
   $sql = "SELECT link, id FROM items";
@@ -83,11 +85,14 @@ if( isset($_POST['add']) ) {
   }
   mysqli_free_result($result);
   ?>
-  </table>
+  </table></div>
+  <br />
   <form method="post" action="<?php $_PHP_SELF ?>">
   <input name="item_link" type="text" id="item_link" size="150">
   <input name="add" type="submit" id="add" value="Add Item">
   </form>
+  <p>How to use: add a link to the product page of an item in the text box above and its name and current price will appear in the table.<br />
+    Supported sites: amazon.ca, amazon.com, amiami.com</p>
 <?php
 }
 
